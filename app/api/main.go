@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	pb "github.com/110y/gae-go-grpc/proto"
+	pb "github.com/110y/gae-go-grpc/app/api/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 )
