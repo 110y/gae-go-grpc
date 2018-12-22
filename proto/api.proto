@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package proto;
+
+service Api {
+    rpc Echo(Message) returns (Message) {}
+}
+
+message Message {
+    string message = 1;
+}
