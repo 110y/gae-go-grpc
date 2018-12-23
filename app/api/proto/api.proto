@@ -13,7 +13,7 @@ service Api {
     rpc CreateUser(CreateUserRequest) returns (User) {
         option (google.api.http) = {
             post: "/users"
-            body: "user"
+            body: "*"
         };
     }
 }

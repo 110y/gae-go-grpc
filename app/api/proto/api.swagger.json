@@ -32,7 +32,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/protoUser"
+              "$ref": "#/definitions/protoCreateUserRequest"
             }
           }
         ],
@@ -67,6 +67,14 @@
     }
   },
   "definitions": {
+    "protoCreateUserRequest": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/protoUser"
+        }
+      }
+    },
     "protoUser": {
       "type": "object",
       "properties": {
