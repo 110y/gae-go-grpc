@@ -5,6 +5,8 @@ services:
     build:
       context: ./containers/api
     working_dir: /go/src/github.com/110y/gae-go-grpc
+    tty: true
+    stdin_open: true
     privileged: true
     ports:
       - ${GRPC_PORT}:5000
