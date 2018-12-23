@@ -19,7 +19,7 @@ services:
     volumes:
       - ${GOPATH}/src/github.com/110y/gae-go-grpc:/go/src/github.com/110y/gae-go-grpc:cached
       - ${GOPATH}/pkg/mod:/go/pkg/mod:cached
-    command: go run ./app/api/main.go
+    command: realize start
 
   db:
     build:
