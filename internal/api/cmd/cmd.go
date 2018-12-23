@@ -9,7 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"cloud.google.com/go/datastore"
 	pb "github.com/110y/gae-go-grpc/app/api/proto"
+	"github.com/google/uuid"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 )
@@ -19,20 +21,51 @@ const (
 	httpPort = 8080
 )
 
+var client *datastore.Client
+
 type server struct {
 }
 
+type user struct {
+	ID   string `datastore:"-"`
+	Name string
+}
+
 func (s *server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.User, error) {
-	return &pb.User{
-		Id:   "foobarbaz",
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
+
+	u := &user{
+		ID:   id.String(),
 		Name: req.GetUser().GetName(),
+	}
+	key := datastore.NameKey("User", u.ID, nil)
+
+	_, err = client.Put(ctx, key, u)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.User{
+		Id:   u.ID,
+		Name: u.Name,
 	}, nil
 }
 
 func (s *server) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.User, error) {
+	key := datastore.NameKey("User", req.Id, nil)
+	u := &user{ID: req.Id}
+
+	err := client.Get(ctx, key, u)
+	if err != nil {
+		return nil, err
+	}
+
 	return &pb.User{
-		Id:   req.Id,
-		Name: "foobarbaz",
+		Id:   u.ID,
+		Name: u.Name,
 	}, nil
 }
 
@@ -40,6 +73,15 @@ func Execute() error {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
+	if err := loadEnvironmentVariables(); err != nil {
+		return err
+	}
+
+	err := initializeDatastoreClient(ctx, env.GcpProjectID)
+	if err != nil {
+		return fmt.Errorf("failed to create a datastore client %+v", err)
+	}
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
@@ -85,4 +127,15 @@ func runHTTPServer(ctx context.Context) error {
 	}
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", httpPort), mux)
+}
+
+func initializeDatastoreClient(ctx context.Context, project string) error {
+	c, err := datastore.NewClient(ctx, project)
+	if err != nil {
+		return err
+	}
+
+	client = c
+
+	return nil
 }
