@@ -13,6 +13,7 @@ import (
 	pb "github.com/110y/gae-go-grpc/app/api/proto"
 	"github.com/google/uuid"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"go.opencensus.io/plugin/ocgrpc"
 	"google.golang.org/grpc"
 )
 
@@ -80,15 +81,21 @@ func Execute() error {
 
 	err := initializeDatastoreClient(ctx, env.GcpProjectID)
 	if err != nil {
-		return fmt.Errorf("failed to create a datastore client %+v", err)
+		return fmt.Errorf("failed to create a datastore client: %+v", err)
 	}
+
+	flush, err := setupStackdriverTrace(ctx, env.GcpProjectID)
+	if err != nil {
+		return fmt.Errorf("failed to set up stackdriver trace: %+v", err)
+	}
+	defer flush()
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
 		return fmt.Errorf("failed to listen on port: %d", grpcPort)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
 	pb.RegisterApiServer(s, &server{})
 
 	sigChan := make(chan os.Signal, 1)
@@ -113,15 +120,32 @@ func Execute() error {
 	return nil
 }
 
+func CheckError(err error) {
+	if err != nil {
+		fmt.Printf("exit: %+v", err)
+		os.Exit(1)
+	}
+}
+
 func runHTTPServer(ctx context.Context) error {
 	mux := runtime.NewServeMux(
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 			EmitDefaults: true,
 		}),
 	)
-	opts := []grpc.DialOption{grpc.WithInsecure()}
 
-	err := pb.RegisterApiHandlerFromEndpoint(ctx, mux, fmt.Sprintf("localhost:%d", grpcPort), opts)
+	opts := []grpc.DialOption{
+		grpc.WithInsecure(),
+		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
+	}
+
+	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", grpcPort), opts...)
+	if err != nil {
+		return err
+	}
+
+	apiClient := pb.NewApiClient(conn)
+	pb.RegisterApiHandlerClient(ctx, mux, apiClient)
 	if err != nil {
 		return err
 	}
