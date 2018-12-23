@@ -4,14 +4,29 @@ package proto;
 import "google/api/annotations.proto";
 
 service Api {
-    rpc Echo(Message) returns (Message) {
+    rpc GetUser(GetUserRequest) returns (User) {
         option (google.api.http) = {
-            post: "/echo"
-            body: "*"
+            get: "/users/{id}"
+        };
+    };
+
+    rpc CreateUser(CreateUserRequest) returns (User) {
+        option (google.api.http) = {
+            post: "/users"
+            body: "user"
         };
     }
 }
 
-message Message {
-    string message = 1;
+message User {
+    string id = 1;
+    string name = 2;
+}
+
+message CreateUserRequest {
+    User user = 1;
+}
+
+message GetUserRequest {
+    string id = 1;
 }

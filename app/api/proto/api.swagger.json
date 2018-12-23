@@ -15,14 +15,14 @@
     "application/json"
   ],
   "paths": {
-    "/echo": {
+    "/users": {
       "post": {
-        "operationId": "Echo",
+        "operationId": "CreateUser",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protoMessage"
+              "$ref": "#/definitions/protoUser"
             }
           }
         },
@@ -32,8 +32,32 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/protoMessage"
+              "$ref": "#/definitions/protoUser"
             }
+          }
+        ],
+        "tags": [
+          "Api"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "operationId": "GetUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protoUser"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -43,10 +67,13 @@
     }
   },
   "definitions": {
-    "protoMessage": {
+    "protoUser": {
       "type": "object",
       "properties": {
-        "message": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
           "type": "string"
         }
       }

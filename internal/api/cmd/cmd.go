@@ -22,9 +22,17 @@ const (
 type server struct {
 }
 
-func (s *server) Echo(ctx context.Context, req *pb.Message) (*pb.Message, error) {
-	return &pb.Message{
-		Message: fmt.Sprintf("HELLO: %s", req.Message),
+func (s *server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.User, error) {
+	return &pb.User{
+		Id:   "foobarbaz",
+		Name: req.GetUser().GetName(),
+	}, nil
+}
+
+func (s *server) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.User, error) {
+	return &pb.User{
+		Id:   req.Id,
+		Name: "foobarbaz",
 	}, nil
 }
 
@@ -64,7 +72,11 @@ func Execute() error {
 }
 
 func runHTTPServer(ctx context.Context) error {
-	mux := runtime.NewServeMux()
+	mux := runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+			EmitDefaults: true,
+		}),
+	)
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
 	err := pb.RegisterApiHandlerFromEndpoint(ctx, mux, fmt.Sprintf("localhost:%d", grpcPort), opts)
