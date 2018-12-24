@@ -16,6 +16,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/utilities"
 	"golang.org/x/net/context"
+	"go.opencensus.io/exporter/stackdriver/propagation"
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -113,6 +115,13 @@ func RegisterApiHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 	mux.Handle("GET", pattern_Api_GetUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		httpFormat := &propagation.HTTPFormat{}
+		sc, ok := httpFormat.SpanContextFromRequest(req)
+		if ok {
+			sctx, span := trace.StartSpanWithRemoteParent(ctx, "grpc-gateway", sc)
+			defer span.End()
+			ctx = sctx
+		}
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateContext(ctx, mux, req)
 		if err != nil {
@@ -133,6 +142,13 @@ func RegisterApiHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 	mux.Handle("POST", pattern_Api_CreateUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
+		httpFormat := &propagation.HTTPFormat{}
+		sc, ok := httpFormat.SpanContextFromRequest(req)
+		if ok {
+			sctx, span := trace.StartSpanWithRemoteParent(ctx, "grpc-gateway", sc)
+			defer span.End()
+			ctx = sctx
+		}
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		rctx, err := runtime.AnnotateContext(ctx, mux, req)
 		if err != nil {

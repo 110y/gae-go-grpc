@@ -22,6 +22,7 @@ protoc-grpc-gateway:
 		-I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
 		--grpc-gateway_out=logtostderr=true:app/api/proto \
 		app/api/proto/api.proto
+	docker-compose run --rm protoc ./script/add-octrace-to-gw.sh
 
 .PHONY: protoc-grpc-gateway-swagger
 protoc-grpc-gateway-swagger:
