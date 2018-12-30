@@ -84,11 +84,13 @@ func Execute() error {
 		return fmt.Errorf("failed to create a datastore client: %+v", err)
 	}
 
-	flush, err := setupStackdriverTrace(ctx, env.GcpProjectID)
-	if err != nil {
-		return fmt.Errorf("failed to set up stackdriver trace: %+v", err)
+	if env.EnableStackdriverTrace {
+		flush, err := setupStackdriverTrace(ctx, env.GcpProjectID)
+		if err != nil {
+			return fmt.Errorf("failed to set up stackdriver trace: %+v", err)
+		}
+		defer flush()
 	}
-	defer flush()
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {

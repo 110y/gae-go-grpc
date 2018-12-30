@@ -9,7 +9,8 @@ import (
 var env *environment
 
 type environment struct {
-	GcpProjectID string `envconfig:"GCP_PROJECT_ID" default:""`
+	GcpProjectID           string `envconfig:"GCP_PROJECT_ID" default:""`
+	EnableStackdriverTrace bool   `envconfig:"ENABLE_STACKDRIVER_TRACE" default:"false"`
 }
 
 func loadEnvironmentVariables() error {
