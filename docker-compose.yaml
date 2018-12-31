@@ -29,7 +29,9 @@ services:
       - ${DB_PORT}:3000
     environment:
       - CLOUDSDK_CORE_PROJECT=${GCP_PROJECT_ID}
-    command: gcloud beta emulators datastore start --host-port 0.0.0.0:3000
+    command: gcloud beta emulators datastore start --host-port 0.0.0.0:3000 --store-on-disk --data-dir /datastore --consistency 0.8
+    volumes:
+      - datastore:/datastore
 
   protoc:
     build:
@@ -37,3 +39,6 @@ services:
     working_dir: /go/src/github.com/110y/gae-go-grpc
     volumes:
       - ${GOPATH}/src/github.com/110y/gae-go-grpc:/go/src/github.com/110y/gae-go-grpc:cached
+
+volumes:
+  datastore: {}
