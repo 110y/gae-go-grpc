@@ -17,6 +17,7 @@ services:
       - DATASTORE_EMULATOR_HOST=db:3000
       - GCP_PROJECT_ID=${GCP_PROJECT_ID}
       - ENABLE_STACKDRIVER_TRACE=${ENABLE_STACKDRIVER_TRACE}
+      - APP_ENGINE_NAMESPACE=${APP_ENGINE_NAMESPACE}
     volumes:
       - ${GOPATH}/src/github.com/110y/gae-go-grpc:/go/src/github.com/110y/gae-go-grpc:cached
       - ${GOPATH}/pkg/mod:/go/pkg/mod:cached

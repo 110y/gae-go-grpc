@@ -2,3 +2,4 @@ runtime: go111
 env_variables:
   GCP_PROJECT_ID:           'xxx'
   ENABLE_STACKDRIVER_TRACE: 'true'
+  APP_ENGINE_NAMESPACE:     ''

@@ -11,6 +11,8 @@ import (
 
 	"cloud.google.com/go/datastore"
 	pb "github.com/110y/gae-go-grpc/app/api/proto"
+	"github.com/110y/gae-go-grpc/internal/lib/appengine/grpc/interceptor"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"go.opencensus.io/plugin/ocgrpc"
 	"google.golang.org/grpc"
@@ -55,7 +57,12 @@ func Execute() error {
 		return fmt.Errorf("failed to listen on port: %d", grpcPort)
 	}
 
-	s := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+	opts := []grpc.ServerOption{
+		grpc.StatsHandler(&ocgrpc.ServerHandler{}),
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(unaryServerInterceptors()...)),
+	}
+
+	s := grpc.NewServer(opts...)
 	pb.RegisterApiServer(s, &server{})
 
 	sigChan := make(chan os.Signal, 1)
@@ -122,4 +129,17 @@ func initializeDatastoreClient(ctx context.Context, project string) error {
 	client = c
 
 	return nil
+}
+
+func unaryServerInterceptors() []grpc.UnaryServerInterceptor {
+	var interceptors []grpc.UnaryServerInterceptor
+
+	if env.AppEngineNamespace != "" {
+		interceptors = append(
+			interceptors,
+			interceptor.AppEngineNamespacingUnaryServerInterceptor(env.AppEngineNamespace),
+		)
+	}
+
+	return interceptors
 }
