@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 
-	"cloud.google.com/go/datastore"
 	pb "github.com/110y/gae-go-grpc/app/api/proto"
+	"github.com/110y/gae-go-grpc/internal/lib/appengine/datastore"
 	"github.com/google/uuid"
 )
 
@@ -21,7 +21,7 @@ func (s *server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb
 		ID:   id.String(),
 		Name: req.GetUser().GetName(),
 	}
-	key := datastore.NameKey("User", u.ID, nil)
+	key := datastore.NameKey(ctx, "User", u.ID, nil)
 
 	_, err = client.Put(ctx, key, u)
 	if err != nil {
@@ -35,7 +35,7 @@ func (s *server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb
 }
 
 func (s *server) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.User, error) {
-	key := datastore.NameKey("User", req.Id, nil)
+	key := datastore.NameKey(ctx, "User", req.Id, nil)
 	u := &user{ID: req.Id}
 
 	err := client.Get(ctx, key, u)
